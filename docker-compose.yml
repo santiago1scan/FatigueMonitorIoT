@@ -1,0 +1,49 @@
+version: '3.9'
+
+services:
+
+  mqtt:
+    image: eclipse-mosquitto
+    container_name: mqtt-broker
+    ports:
+      - "1883:1883"
+
+  api:
+    build: ./services/api
+    container_name: api-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mqtt
+
+  #vision:
+   # build: ./services/vision
+    #container_name: vision-service
+    #privileged: true
+    #devices:
+    #  - "/dev/video0:/dev/video0"
+    #depends_on:
+    #  - mqtt
+
+  #decision:
+   # build: ./services/decision
+    #container_name: decision-service
+    #depends_on:
+     # - mqtt
+
+  #hal:
+   # build: ./services/hal
+    #container_name: hal-service
+    #privileged: true
+    #depends_on:
+     # - mqtt
+
+  #frontend:
+   # build: ./services/frontend
+    #container_name: frontend
+    #ports:
+     # - "5173:5173"
+
+networks:
+  default:
+    name: fatigue-monitor-network
