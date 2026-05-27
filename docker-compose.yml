@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
 
   mqtt:
@@ -31,12 +29,21 @@ services:
     #depends_on:
      # - mqtt
 
-  #hal:
-   # build: ./services/hal
-    #container_name: hal-service
-    #privileged: true
-    #depends_on:
-     # - mqtt
+  hal:
+    build: ./services/hal
+    container_name: hal-service
+    environment:
+      HAL_ENV: "dev"
+      HAL_MQTT_HOST: "mqtt"
+      HAL_MQTT_PORT: "1883"
+      HAL_SERVO_PROVIDER: "mock"
+      HAL_CAMERA_PROVIDER: "mock"
+      HAL_GPIO_PROVIDER: "mock"
+      HAL_PWM_PROVIDER: "mock"
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mqtt
 
   #frontend:
    # build: ./services/frontend
