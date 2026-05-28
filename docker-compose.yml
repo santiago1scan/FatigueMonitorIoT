@@ -14,14 +14,22 @@ services:
     depends_on:
       - mqtt
 
-  #vision:
-   # build: ./services/vision
-    #container_name: vision-service
-    #privileged: true
-    #devices:
-    #  - "/dev/video0:/dev/video0"
-    #depends_on:
-    #  - mqtt
+  vision:
+    build: ./services/vision
+    container_name: vision-service
+    environment:
+      VISION_ENV: "dev"
+      VISION_MQTT_HOST: "mqtt"
+      VISION_MQTT_PORT: "1883"
+      VISION_FRAME_SOURCE: "stream"
+      VISION_HAL_STREAM_URL: "http://hal:8080/camera/stream"
+      VISION_HAL_SNAPSHOT_URL: "http://hal:8080/camera/frame"
+      VISION_DEBUG_VIDEO_ENABLE: "true"
+    ports:
+      - "8090:8090"
+    depends_on:
+      - mqtt
+      - hal
 
   #decision:
    # build: ./services/decision
@@ -37,9 +45,12 @@ services:
       HAL_MQTT_HOST: "mqtt"
       HAL_MQTT_PORT: "1883"
       HAL_SERVO_PROVIDER: "mock"
-      HAL_CAMERA_PROVIDER: "mock"
+      HAL_CAMERA_PROVIDER: "opencv"
+      HAL_CAMERA_DEVICE_INDEX: "0"
       HAL_GPIO_PROVIDER: "mock"
       HAL_PWM_PROVIDER: "mock"
+    devices:
+      - "/dev/video0:/dev/video0"
     ports:
       - "8080:8080"
     depends_on:

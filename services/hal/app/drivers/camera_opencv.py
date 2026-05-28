@@ -35,4 +35,11 @@ class OpenCVCamera(BaseCamera):
         ok, frame = self._capture.read()
         if not ok:
             raise RuntimeError("camera_capture_failed")
-        return frame.tobytes()
+        try:
+            import cv2
+        except ImportError as exc:
+            raise RuntimeError("opencv-python-headless is required for OpenCVCamera") from exc
+        ok, encoded = cv2.imencode(".jpg", frame, [int(cv2.IMWRITE_JPEG_QUALITY), 80])
+        if not ok:
+            raise RuntimeError("camera_encode_failed")
+        return encoded.tobytes()

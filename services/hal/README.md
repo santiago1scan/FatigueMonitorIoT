@@ -59,22 +59,51 @@ Payload ejemplo:
 - GET /status
 - POST /servo/test
 - GET /camera/status
+- GET /camera/frame
+- GET /camera/stream
+
+### Respuestas
+
+- `/camera/frame` devuelve JPEG.
+- `/camera/stream` devuelve MJPEG con boundary `frame`.
 
 ## Variables de entorno
 
 Todas usan prefijo `HAL_`.
 
+Basicas:
+
+- HAL_ENV
+- HAL_LOG_LEVEL
+- HAL_API_HOST
+- HAL_API_PORT
 - HAL_MQTT_HOST
 - HAL_MQTT_PORT
 - HAL_MQTT_USERNAME
 - HAL_MQTT_PASSWORD
+
+Hardware (providers):
+
 - HAL_SERVO_PROVIDER: mock | raspberry
 - HAL_CAMERA_PROVIDER: mock | opencv
 - HAL_GPIO_PROVIDER: mock | raspberry
 - HAL_PWM_PROVIDER: mock | raspberry
+
+Servo/GPIO/PWM:
+
 - HAL_SERVO_PIN
+- HAL_SERVO_MIN_ANGLE
+- HAL_SERVO_MAX_ANGLE
+- HAL_SERVO_NEUTRAL_ANGLE
 - HAL_STATUS_LED_PIN
+- HAL_PWM_PIN
+- HAL_PWM_FREQUENCY
+
+Camara:
+
 - HAL_CAMERA_DEVICE_INDEX
+- HAL_CAMERA_FRAME_WIDTH
+- HAL_CAMERA_FRAME_HEIGHT
 
 ## Flujo funcional minimo
 
