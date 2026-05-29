@@ -31,11 +31,25 @@ services:
       - mqtt
       - hal
 
-  #decision:
-   # build: ./services/decision
-    #container_name: decision-service
-    #depends_on:
-     # - mqtt
+  decision:
+    build: ./services/decision
+    container_name: decision-service
+    environment:
+      DECISION_ENV: "dev"
+      DECISION_MQTT_HOST: "mqtt"
+      DECISION_MQTT_PORT: "1883"
+      DECISION_LOG_LEVEL: "DEBUG"
+      DECISION_MQTT_INPUT_TOPICS: "gym/vision/pose,gym/vision/metrics"
+      DECISION_STANDING_KNEE_ANGLE_MIN: "170"      # +2 sobre 168 aprox
+      DECISION_BOTTOM_KNEE_ANGLE_MAX: "86"         # -3 sobre 89 para exigir profundidad
+      DECISION_VEL_DESCEND_THRESHOLD: "-0.15"
+      DECISION_VEL_ASCEND_THRESHOLD: "0.17"
+      DECISION_VEL_IDLE_THRESHOLD: "0.10"
+      DECISION_MIN_CONFIRM_FRAMES: "3"
+      DECISION_TUNING_MIN_SAMPLES: "40"
+      DECISION_TUNING_ENABLED: "false"
+    depends_on:
+      - mqtt
 
   hal:
     build: ./services/hal

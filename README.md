@@ -153,14 +153,35 @@ Responsabilidad:
 
 Inicialmente el sistema utilizará MediaPipe, pero la arquitectura debe permitir reemplazar fácilmente el proveedor de visión.
 
-Ejemplo de evento:
+Publica eventos estructurados con pose y metricas biomecanicas basicas.
+
+Ejemplo de `gym/vision/pose`:
 
 ```json
 {
-  "timestamp": "2026-05-27T18:00:00Z",
-  "knee_angle": 92,
-  "hip_angle": 87,
-  "fatigue_score": 0.73
+  "timestamp": "2026-05-28T02:32:21.037464+00:00",
+  "tracking": true,
+  "landmarks": {
+    "left_knee": {"x": 0.62, "y": 1.97, "z": -0.21}
+  },
+  "confidence": 0.48,
+  "inference_ms": 35.1
+}
+```
+
+Ejemplo de `gym/vision/metrics`:
+
+```json
+{
+  "timestamp": "2026-05-28T02:32:21.037464+00:00",
+  "tracking": true,
+  "angles": {"left_knee": 178.0},
+  "back_inclination": 1.4,
+  "torso_leg_ratio": 0.65,
+  "velocity": {"vertical": 0.04},
+  "positions": {
+    "left_shoulder": {"x": 0.68, "y": 0.67, "z": -0.82}
+  }
 }
 ```
 
@@ -168,8 +189,12 @@ Topics MQTT:
 
 ```text
 gym/vision/pose
-gym/vision/fatigue
+gym/vision/metrics
+gym/vision/debug
+gym/vision/health
 ```
+
+Mas detalle en [services/vision/README.md](services/vision/README.md).
 
 ---
 
@@ -182,18 +207,28 @@ Responsabilidad:
 - Generar alertas.
 - Solicitar asistencia física.
 
+Consume eventos de Vision, aplica smoothing + buffers temporales, ejecuta una
+maquina de estados biomecanica, cuenta reps, estima fatiga y detecta fallo.
+
 Consume:
 
 ```text
-gym/vision/#
+gym/vision/pose
+gym/vision/metrics
 ```
 
 Publica:
 
 ```text
-gym/assist/activate
-gym/user/risk
+gym/decision/state
+gym/decision/repetition
+gym/decision/fatigue
+gym/decision/failure
+gym/decision/metrics
+gym/decision/debug
 ```
+
+Mas detalle en [services/decision/README.md](services/decision/README.md).
 
 ---
 
@@ -253,6 +288,97 @@ Responsabilidad:
 - Monitoreo.
 - Control remoto.
 - Visualización de métricas y eventos.
+
+---
+
+# MQTT Topics (Actuales)
+
+## Vision publica
+
+```text
+gym/vision/pose
+gym/vision/metrics
+gym/vision/debug
+gym/vision/health
+```
+
+## Decision publica
+
+```text
+gym/decision/state
+gym/decision/repetition
+gym/decision/fatigue
+gym/decision/failure
+gym/decision/metrics
+gym/decision/debug
+```
+
+## HAL consume y publica
+
+Consume:
+
+```text
+gym/assist/activate
+gym/assist/disable
+```
+
+Publica:
+
+```text
+gym/system/status
+gym/hal/health
+gym/hal/errors
+```
+
+## Ejemplos de payloads
+
+Decision state (`gym/decision/state`):
+
+```json
+{
+  "timestamp": "2026-05-28T03:10:20.123456+00:00",
+  "state": "DESCENDING",
+  "rep": 4,
+  "fatigue_score": 0.62,
+  "confidence": 0.86,
+  "tracking": true,
+  "metrics": {
+    "knee_angle_avg": 122.1,
+    "back_inclination": 4.7,
+    "velocity_vertical": -0.18,
+    "depth_score": 0.81
+  }
+}
+```
+
+Decision repetition (`gym/decision/repetition`):
+
+```json
+{
+  "timestamp": "2026-05-28T03:10:20.123456+00:00",
+  "event": "NEW_REP",
+  "rep": 5,
+  "depth_ok": true
+}
+```
+
+Decision failure (`gym/decision/failure`):
+
+```json
+{
+  "timestamp": "2026-05-28T03:10:20.123456+00:00",
+  "event": "NEAR_FAILURE",
+  "confidence": 0.81
+}
+```
+
+HAL activate (`gym/assist/activate`):
+
+```json
+{
+  "force": 0.6
+}
+```
 
 ---
 
@@ -342,11 +468,22 @@ vision/
 ```text
 decision/
 │
-├── rules/
-├── fatigue/
-├── assistance/
-├── mqtt/
-└── main.py
+├── app/
+│   ├── consumers/
+│   ├── buffers/
+│   ├── smoothing/
+│   ├── biomechanics/
+│   ├── state_machine/
+│   ├── fatigue/
+│   ├── failure_detection/
+│   ├── mqtt/
+│   ├── schemas/
+│   ├── config/
+│   ├── metrics/
+│   └── main.py
+├── tests/
+├── Dockerfile
+└── requirements.txt
 ```
 
 ---
@@ -388,6 +525,112 @@ services:
 
   frontend:
     build: ./services/frontend
+
+---
+
+# Uso rápido
+
+Levantar servicios core:
+
+```bash
+docker compose up -d mqtt hal vision decision
+```
+
+Ver logs:
+
+```bash
+docker compose logs -f decision
+```
+
+---
+
+# Configuración (resumen)
+
+## Vision (prefijo `VISION_`)
+
+Variables clave:
+- `VISION_MQTT_HOST`, `VISION_MQTT_PORT`
+- `VISION_FRAME_SOURCE` (`stream` | `snapshot`)
+- `VISION_HAL_STREAM_URL`, `VISION_HAL_SNAPSHOT_URL`
+- `VISION_POSE_DET_CONF`, `VISION_POSE_TRACK_CONF`
+- `VISION_TOPIC_POSE`, `VISION_TOPIC_METRICS`, `VISION_TOPIC_DEBUG`, `VISION_TOPIC_HEALTH`
+
+## Decision (prefijo `DECISION_`)
+
+Conexion MQTT:
+- `DECISION_MQTT_HOST`, `DECISION_MQTT_PORT`
+- `DECISION_MQTT_INPUT_TOPICS` (string separado por comas)
+
+Smoothing y buffers:
+- `DECISION_BUFFER_SIZE`
+- `DECISION_SMOOTHING_ALPHA_ANGLES`
+- `DECISION_SMOOTHING_ALPHA_VELOCITY`
+- `DECISION_SMOOTHING_ALPHA_BACK`
+
+Estados y thresholds:
+- `DECISION_STANDING_KNEE_ANGLE_MIN`
+- `DECISION_BOTTOM_KNEE_ANGLE_MAX`
+- `DECISION_VEL_DESCEND_THRESHOLD`
+- `DECISION_VEL_ASCEND_THRESHOLD`
+- `DECISION_VEL_IDLE_THRESHOLD`
+- `DECISION_MIN_CONFIRM_FRAMES`
+
+Tuning guiado:
+- `DECISION_TUNING_ENABLED`
+- `DECISION_TUNING_MIN_SAMPLES`
+- `DECISION_TUNING_WINDOW_SIZE`
+
+Mas detalle en [services/decision/README.md](services/decision/README.md).
+
+## HAL (prefijo `HAL_`)
+
+Variables clave:
+- `HAL_MQTT_HOST`, `HAL_MQTT_PORT`
+- `HAL_SERVO_PROVIDER`, `HAL_CAMERA_PROVIDER`
+
+Mas detalle en [services/hal/README.md](services/hal/README.md).
+
+---
+
+# Debugging y observabilidad
+
+Ver estado actual del Decision Engine:
+
+```bash
+docker compose exec mqtt mosquitto_sub -t gym/decision/state -v
+```
+
+Ver debug interno y sugerencias de tuning:
+
+```bash
+docker compose exec mqtt mosquitto_sub -t gym/decision/debug -v
+```
+
+Ver salida de Vision:
+
+```bash
+docker compose exec mqtt mosquitto_sub -t gym/vision/metrics -v
+```
+
+Si `frames_received` en `gym/decision/debug` es 0, el Decision no esta recibiendo
+mensajes de Vision.
+
+---
+
+# Ajuste y tuning del Decision Engine
+
+1) Asegura que aparezca `BOTTOM` en `gym/decision/state`.
+2) Espera a que `tuning_suggestions` deje de ser `null`.
+3) Ajusta thresholds con margen conservador:
+   - `standing_knee_angle_min`: +2 a +5 grados
+   - `bottom_knee_angle_max`: -2 a -5 grados
+   - `vel_descend_threshold` / `vel_ascend_threshold`: ajustar 0.01–0.02
+4) Desactiva tuning cuando tengas valores finales:
+
+```text
+DECISION_TUNING_ENABLED=false
+DECISION_TUNING_MIN_SAMPLES=40
+```
 ```
 
 ---
@@ -412,23 +655,9 @@ Servo/Motor
 
 ---
 
-# Topics MQTT Recomendados
+# Topics MQTT (resumen)
 
-```text
-gym/vision/pose
-gym/vision/fatigue
-
-gym/system/status
-gym/system/error
-
-gym/assist/activate
-gym/assist/disable
-
-gym/session/start
-gym/session/end
-
-gym/user/alert
-```
+Ver la seccion MQTT Topics (Actuales) para el listado completo.
 
 ---
 
@@ -523,9 +752,10 @@ Estado actual:
 - Arquitectura conceptual definida.
 - Diseño modular definido.
 - Sistema orientado a eventos definido.
-- Integración WoT planificada.
+- Vision Service operativo (MediaPipe + MQTT).
+- Decision Engine operativo (estados, reps, fatiga, fallo).
 - Orquestación con Docker definida.
-- Pendiente implementación inicial.
+- Frontend y API en progreso.
 
 ---
 
