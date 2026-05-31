@@ -1,7 +1,6 @@
-fastapi
-uvicorn
-opencv-python
-mediapipe
-ultralytics
-numpy
-paho-mqtt
+fastapi>=0.104.0
+pydantic>=2.0.0
+pydantic-settings>=2.0.0
+uvicorn[standard]>=0.24.0
+aiomqtt>=2.0.0
+python-multipart>=0.0.6

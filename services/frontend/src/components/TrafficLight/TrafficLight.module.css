@@ -1,0 +1,49 @@
+.trafficLight {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: fit-content;
+}
+
+.light {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  opacity: 0.3;
+}
+
+.light.active {
+  opacity: 1;
+  box-shadow: 0 0 30px currentColor;
+  transform: scale(1.05);
+}
+
+.green {
+  background-color: #10b981;
+}
+
+.green.active {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.8);
+}
+
+.yellow {
+  background-color: #f59e0b;
+}
+
+.yellow.active {
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.8);
+}
+
+.red {
+  background-color: #ef4444;
+}
+
+.red.active {
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.8);
+}
