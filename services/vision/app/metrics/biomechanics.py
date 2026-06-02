@@ -125,7 +125,8 @@ class BiomechanicsCalculator:
         dt = timestamp - self._prev_time
         if dt <= 0:
             return None
-        velocity = (hip_y - self._prev_hip_y) / dt
+        # Image coordinates increase downward; invert so upward movement is positive.
+        velocity = (self._prev_hip_y - hip_y) / dt
         self._prev_hip_y = hip_y
         self._prev_time = timestamp
         return velocity
