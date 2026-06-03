@@ -219,6 +219,7 @@ Desactiva el sistema de asistencia.
 **Efecto**:
 - Publica `gym/assist/disable` a MQTT
 - Establece `active = false`
+- Resetea `repetitions = 0`, `fatigue_score = 0.0` y `play_sound = false`
 - Broadcast nuevo estado a WebSocket
 
 **Respuesta**:

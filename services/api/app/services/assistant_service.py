@@ -67,6 +67,9 @@ class AssistantService:
     async def stop_assist(self) -> None:
         await self._mqtt.publish_disable()
         self.active = False
+        self.repetitions = 0
+        self.fatigue_score = 0.0
+        self.play_sound = False
         logger.info("Assist deactivated")
         await self._broadcast()
 
