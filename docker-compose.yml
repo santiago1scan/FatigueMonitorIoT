@@ -39,7 +39,7 @@ services:
       DECISION_MQTT_HOST: "mqtt"
       DECISION_MQTT_PORT: "1883"
       DECISION_LOG_LEVEL: "DEBUG"
-      DECISION_MQTT_INPUT_TOPICS: "gym/vision/pose,gym/vision/metrics"
+      DECISION_MQTT_INPUT_TOPICS: "gym/vision/pose,gym/vision/metrics,gym/assist/disable"
       DECISION_STANDING_KNEE_ANGLE_MIN: "173"      # +2 sobre 168 aprox
       DECISION_BOTTOM_KNEE_ANGLE_MAX: "113"         # -3 sobre 89 para exigir profundidad
       DECISION_VEL_DESCEND_THRESHOLD: "-0.08"
@@ -48,12 +48,12 @@ services:
       DECISION_MIN_CONFIRM_FRAMES: "3"
       DECISION_TUNING_MIN_SAMPLES: "10"
       DECISION_TUNING_ENABLED: "true"
-      DECISION_BASELINE_REPS: "2"
-      DECISION_FATIGUE_WEIGHT_VELOCITY: "2.9"
-      DECISION_FATIGUE_WEIGHT_BACK: "0.1"
+      DECISION_BASELINE_REPS: "1"
+      DECISION_FATIGUE_WEIGHT_VELOCITY: "2.0"
+      DECISION_FATIGUE_WEIGHT_BACK: "0.15"
       DECISION_FATIGUE_WEIGHT_ASYMMETRY: "0.1"
-      DECISION_FATIGUE_WEIGHT_STABILITY: "0.1"
-      DECISION_FATIGUE_SCORE_SMOOTHING: "0.1"
+      DECISION_FATIGUE_WEIGHT_STABILITY: "0.15"
+      DECISION_FATIGUE_SCORE_SMOOTHING: "0.8"
     depends_on:
       - mqtt
 
@@ -70,7 +70,7 @@ services:
       HAL_GPIO_PROVIDER: "mock"
       HAL_PWM_PROVIDER: "mock"
     devices:
-      - "/dev/video0:/dev/video0"
+      - "/dev/video2:/dev/video0"
     ports:
       - "8080:8080"
     depends_on:

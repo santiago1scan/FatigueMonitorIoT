@@ -30,6 +30,7 @@ MQTT Consumer
 Input:
 - `gym/vision/pose`
 - `gym/vision/metrics`
+- `gym/assist/disable` (control — resetea sesion, ver seccion abajo)
 
 Ejemplo `gym/vision/pose`:
 
@@ -171,6 +172,25 @@ Ejemplo para ver cualquier topic:
 
 ```bash
 docker compose exec mqtt mosquitto_sub -t <topic> -v
+```
+
+## Control de sesion por series
+
+Decision suscribe a `gym/assist/disable` para reiniciar el estado entre series.
+
+Cuando el frontend (o cualquier cliente) publica en `gym/assist/disable`, Decision:
+
+- Resetea el contador de repeticiones a 0
+- Resetea el score de fatiga a 0.0 (conserva el baseline para la siguiente serie)
+- Vuelve la maquina de estados a `IDLE`
+- Limpia el buffer de poses y el detector de fallos
+
+**No conserva** el contador infinito — cada serie arranca de cero. El baseline de fatiga se mantiene entre series para no recalibrar cada vez.
+
+Ejemplo de publicacion tipica (desde el API al presionar Stop):
+
+```bash
+mosquitto_pub -t "gym/assist/disable" -m '{"command": "disable"}'
 ```
 
 ## Variables de entorno

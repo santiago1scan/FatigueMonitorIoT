@@ -1,38 +1,47 @@
 # AI Agent Guide
 
-## Project overview
-- Sistema IoT edge-native para asistencia inteligente en ejercicios de peso libre.
-- Arquitectura event-driven via MQTT; servicios desacoplados (Vision, Decision, HAL, API).
-- Documento general: [README.md](README.md).
+## Architecture
+- 5 microservicios, event-driven via MQTT (Eclipse Mosquitto, puerto 1883).
+- Edge-first: sin dependencia cloud; decisiones locales.
+- Hardware solo en HAL; logica biomecanica solo en Decision.
 
-## Core services
-- Vision Service (pose + metricas biomecanicas basicas, publica MQTT): [services/vision/README.md](services/vision/README.md).
-- HAL Service (hardware abstraction, consume MQTT para actuadores): [services/hal/README.md](services/hal/README.md).
-- Decision Engine (en construccion; pipeline biomecanico temporal): [services/decision/plan.md](services/decision/plan.md).
+| Servicio | Directorio | Entrypoint | MQTT lib |
+|----------|------------|------------|----------|
+| Vision | `services/vision` | `python -m app.main` | paho-mqtt (blocking) |
+| Decision | `services/decision` | `python -m app.main` | aiomqtt (async) |
+| HAL | `services/hal` | uvicorn FastAPI (factory) | aiomqtt |
+| API | `services/api` | uvicorn FastAPI | aiomqtt |
+| Frontend | `services/frontend` | Vite dev server | — |
 
-## MQTT topics clave
-- Vision publica: `gym/vision/pose`, `gym/vision/metrics`, `gym/vision/debug`, `gym/vision/health`.
-- HAL consume: `gym/assist/activate`, `gym/assist/disable`.
-- Decision Engine esperado: `gym/decision/state`, `gym/decision/repetition`, `gym/decision/fatigue`, `gym/decision/failure`, `gym/decision/metrics`, `gym/decision/debug`.
+Env vars por servicio: `VISION_*`, `DECISION_*`, `HAL_*`, `ASSIST_*` (API).
 
-## Docker compose
-- Servicios definidos en [docker-compose.yml](docker-compose.yml).
-- El servicio decision esta comentado; activarlo cuando exista Dockerfile y config.
+## Topics MQTT
+- Vision pub: `gym/vision/pose`, `gym/vision/metrics`, `gym/vision/debug`, `gym/vision/health`
+- Decision pub: `gym/decision/state`, `gym/decision/repetition`, `gym/decision/fatigue`, `gym/decision/failure`, `gym/decision/metrics`, `gym/decision/debug`
+- HAL pub: `gym/system/status`, `gym/hal/health`, `gym/hal/errors`; sub: `gym/assist/activate`, `gym/assist/disable`
+- API sub (todos los topics decision) + pub (`gym/assist/*`)
+- Frontend se conecta via WebSocket a API (no MQTT directo)
 
-## Coding conventions
-- Python-first, modular, tipado, con configuracion via variables de entorno por servicio.
-- Evitar acoplar hardware fuera de HAL; toda logica biomecanica debe ir en Decision.
-- Publicar/consumir por MQTT; no llamadas directas entre servicios salvo necesidad local.
+## Comandos
+```sh
+docker compose up --build                          # todos los servicios
+docker compose up vision hal mqtt                  # subset
+docker compose up <service>                        # uno solo
+python -m pytest tests/    # (en services/decision) # unicos tests del repo
+cd services/frontend && npm run dev                 # frontend fuera de Docker
+docker compose -f services/hal/docker-compose.hal.yml up  # HAL standalone con GPIO
+```
 
-## Where to look first
-- Configuracion y env vars de Vision: [services/vision/app/config/settings.py](services/vision/app/config/settings.py).
-- MQTT client async en HAL: [services/hal/app/mqtt/client.py](services/hal/app/mqtt/client.py).
-- Plan detallado Decision Engine: [services/decision/plan.md](services/decision/plan.md).
+## Gotchas
+- **Vision usa paho-mqtt (blocking)**, todos los demas servicios Python usan aiomqtt (async).
+- El modelo MediaPipe `services/vision/pose_landmarker.task` es binario y esta commiteado.
+- HAL selecciona drivers via `HAL_SERVO_PROVIDER`, `HAL_CAMERA_PROVIDER`, etc. (`mock|raspberry`).
+- `decision_metrics_debug.jsonl` en raiz es dump de debug runtime (trackeado, sin `.gitignore`).
+- `config/` y `volumes/` son placeholders vacios.
+- No existe linter/formatter/typecheck configurado a nivel raiz.
+- Usar `docker compose` (v2), no `docker-compose` (v1).
 
-## Common tasks
-- Levantar servicios: `docker compose up vision hal mqtt`.
-- Verificar topics de Vision usando broker local en `mqtt:1883`.
-
-## Notes
-- El sistema es edge-first; decisiones criticas deben ejecutarse localmente.
-- Evitar copiar documentacion existente; enlazar a los README en lugar de duplicar contenido.
+## Reglas
+- Logica biomecanica exclusivamente en **Decision**.
+- Acceso a hardware exclusivamente en **HAL** (usar drivers mock para dev local).
+- No duplicar documentacion existente; enlazar a READMEs en su lugar.

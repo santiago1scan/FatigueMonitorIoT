@@ -17,6 +17,9 @@ class PoseBuffer:
     def append(self, frame: SmoothedFrame) -> None:
         self._frames.append(frame)
 
+    def clear(self) -> None:
+        self._frames.clear()
+
     def latest(self) -> SmoothedFrame | None:
         if not self._frames:
             return None

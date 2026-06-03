@@ -17,7 +17,7 @@ class Settings(BaseSettings):
     mqtt_username: str | None = None
     mqtt_password: str | None = None
     mqtt_client_id: str = "decision-service"
-    mqtt_input_topics: str = "gym/vision/pose,gym/vision/metrics"
+    mqtt_input_topics: str = "gym/vision/pose,gym/vision/metrics,gym/assist/disable"
     mqtt_topic_state: str = "gym/decision/state"
     mqtt_topic_repetition: str = "gym/decision/repetition"
     mqtt_topic_fatigue: str = "gym/decision/fatigue"

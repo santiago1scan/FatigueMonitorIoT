@@ -20,6 +20,9 @@ class EmaFilter:
             self._value = (self._alpha * value) + ((1.0 - self._alpha) * self._value)
         return self._value
 
+    def reset(self) -> None:
+        self._value = None
+
 
 class EmaSmoother:
     def __init__(self, settings: Settings) -> None:

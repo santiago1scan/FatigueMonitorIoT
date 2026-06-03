@@ -66,7 +66,18 @@ async def _run() -> None:
         except asyncio.QueueFull:
             internal_metrics.record_dropped()
 
+    async def _reset_session() -> None:
+        logger.info("session_reset via gym/assist/disable")
+        rep_counter.reset_counter()
+        fatigue.reset_score()
+        state_machine.force_state(BiomechState.IDLE, 0.0)
+        buffer.clear()
+        failure_detector.reset()
+
     async def handle_message(topic: str, payload: bytes) -> None:
+        if topic == "gym/assist/disable":
+            await _reset_session()
+            return
         await consumer.handle_message(topic, payload, on_frame)
 
     await mqtt.start(handle_message)

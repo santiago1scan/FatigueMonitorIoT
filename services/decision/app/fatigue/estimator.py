@@ -85,6 +85,11 @@ class FatigueEstimator:
 
         return self._current_score
 
+    def reset_score(self) -> None:
+        self._current_score = 0.0
+        self._rep_acc.reset()
+        self._score_filter.reset()
+
     def _update_baseline_or_score(self, metrics: RepMetrics) -> None:
         if self._baseline is None:
             self._baseline_reps.append(metrics)

@@ -67,6 +67,10 @@ class RepCounter:
 
         return None
 
+    def reset_counter(self) -> None:
+        self._rep_count = 0
+        self._reset()
+
     def _reset(self) -> None:
         self._stage = 0
         self._saw_bottom = False

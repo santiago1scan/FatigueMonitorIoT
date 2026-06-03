@@ -50,11 +50,10 @@ class AssistantService:
     async def process_failure(self, event: FailureEvent) -> None:
         logger.info("Processed failure event: %s", event.event)
         if event.event == "NEAR_FAILURE":
-            # escalate to RED
             self.fatigue_score = 1.0
             await self._broadcast()
-        elif event.event == "FAILURE":
-            # play sound immediately
+        elif event.event == "FAILURE_DETECTED":
+            self.fatigue_score = 1.0
             self.play_sound = True
             await self._broadcast()
 
