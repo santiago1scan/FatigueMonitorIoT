@@ -81,15 +81,6 @@ class MediaPipePoseProvider(PoseProvider):
         )
 
     def draw_landmarks(self, frame_bgr: np.ndarray, result: PoseResult) -> None:
-        if result.raw_result is None:
-            return None
-        if self._use_solutions and self._drawer and self._mp_pose:
-            self._drawer.draw_landmarks(
-                frame_bgr,
-                result.raw_result.pose_landmarks,
-                self._mp_pose.POSE_CONNECTIONS,
-            )
-            return None
         self._draw_simple_overlay(frame_bgr, result.landmarks)
 
     def _convert_landmarks(self, landmarks: List[object]) -> List[Landmark]:
