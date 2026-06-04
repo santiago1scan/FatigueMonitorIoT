@@ -21,10 +21,8 @@ export interface ApiResponse {
   active: boolean;
 }
 
-const env: Record<string, string> = (import.meta as Record<string, any>).env || {};
+const host = window.location.hostname;
 
-export const API_BASE_URL = env.VITE_API_URL || "http://localhost:8000";
-export const WS_URL = (env.VITE_WS_URL || "ws://localhost:8000").replace(
-  /^http/,
-  "ws"
-);
+export const API_BASE_URL = `http://${host}:8000`;
+export const WS_URL = `ws://${host}:8000`;
+

@@ -1,4 +1,5 @@
 services:
+
   mqtt:
     image: eclipse-mosquitto
     container_name: mqtt-broker
@@ -39,8 +40,8 @@ services:
       DECISION_MQTT_PORT: "1883"
       DECISION_LOG_LEVEL: "DEBUG"
       DECISION_MQTT_INPUT_TOPICS: "gym/vision/pose,gym/vision/metrics,gym/assist/disable"
-      DECISION_STANDING_KNEE_ANGLE_MIN: "173" # +2 sobre 168 aprox
-      DECISION_BOTTOM_KNEE_ANGLE_MAX: "113" # -3 sobre 89 para exigir profundidad
+      DECISION_STANDING_KNEE_ANGLE_MIN: "173"      # +2 sobre 168 aprox
+      DECISION_BOTTOM_KNEE_ANGLE_MAX: "113"         # -3 sobre 89 para exigir profundidad
       DECISION_VEL_DESCEND_THRESHOLD: "-0.08"
       DECISION_VEL_ASCEND_THRESHOLD: "0.05"
       DECISION_VEL_IDLE_THRESHOLD: "0.05"
@@ -69,20 +70,19 @@ services:
       HAL_GPIO_PROVIDER: "mock"
       HAL_PWM_PROVIDER: "mock"
     devices:
-      - "/dev/video0:/dev/video0"
+      - "/dev/video2:/dev/video0"
     ports:
       - "8080:8080"
     depends_on:
       - mqtt
+
+
 
   frontend:
     build: ./services/frontend
     container_name: frontend
     ports:
       - "5173:5173"
-    environment:
-      VITE_API_URL: "http://localhost:8000"
-      VITE_WS_URL: "ws://localhost:8000"
     depends_on:
       - api
 
