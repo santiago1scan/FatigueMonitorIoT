@@ -67,11 +67,7 @@ services:
       HAL_MQTT_PORT: "1883"
       HAL_CAMERA_PROVIDER: "opencv"
       HAL_CAMERA_DEVICE_INDEX: "0"
-      HAL_GPIO_PROVIDER: "raspberry"
-    devices:
-      - /dev/gpiomem0:/dev/gpiomem
-      - /dev/gpiochip0:/dev/gpiochip0
-      - "/dev/video2:/dev/video0"
+      HAL_GPIO_PROVIDER: "mock"
     ports:
       - "8080:8080"
     depends_on:

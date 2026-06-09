@@ -21,10 +21,14 @@ class RaspberryGPIO(BaseGPIO):
         if self._pin is None:
             raise RuntimeError("gpio_not_configured")
         state = "1" if value else "0"
-        subprocess.run(
+        result = subprocess.run(
             ["gpioset", "gpiochip0", f"{self._pin}={state}"],
-            check=True,
             capture_output=True,
             text=True,
         )
+        if result.returncode != 0:
+            self._logger.error(
+                "gpioset_failed rc=%s stderr=%s", result.returncode, result.stderr.strip()
+            )
+            raise RuntimeError(f"gpioset failed: {result.stderr.strip()}")
         self._logger.info("raspberry_gpio_write pin=%s value=%s", pin, value)

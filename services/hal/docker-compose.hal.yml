@@ -7,12 +7,10 @@ services:
       HAL_ENV: "prod"
       HAL_MQTT_HOST: "mqtt"
       HAL_MQTT_PORT: "1883"
-      HAL_SERVO_PROVIDER: "raspberry"
       HAL_CAMERA_PROVIDER: "opencv"
       HAL_GPIO_PROVIDER: "raspberry"
-      HAL_PWM_PROVIDER: "raspberry"
     devices:
-      - /dev/gpiomem:/dev/gpiomem
+      - /dev/gpiochip0:/dev/gpiochip0
       - /dev/video0:/dev/video0
     ports:
       - "8080:8080"
