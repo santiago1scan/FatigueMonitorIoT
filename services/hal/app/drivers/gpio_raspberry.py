@@ -22,7 +22,7 @@ class RaspberryGPIO(BaseGPIO):
             raise RuntimeError("gpio_not_configured")
         state = "1" if value else "0"
         result = subprocess.run(
-            ["gpioset", "gpiochip0", f"{self._pin}={state}"],
+            ["gpioset", "--chip", "gpiochip0", f"{self._pin}={state}"],
             capture_output=True,
             text=True,
         )

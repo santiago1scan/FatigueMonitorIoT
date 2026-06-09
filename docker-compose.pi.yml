@@ -1,0 +1,6 @@
+services:
+  hal:
+    environment:
+      HAL_GPIO_PROVIDER: "raspberry"
+    devices:
+      - /dev/gpiochip0:/dev/gpiochip0
