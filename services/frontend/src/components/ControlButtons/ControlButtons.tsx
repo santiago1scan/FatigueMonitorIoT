@@ -9,6 +9,7 @@ import { useCallback } from "react";
 import { apiService } from "@/services/api";
 import { useApi } from "@/hooks";
 import styles from "./ControlButtons.module.css";
+import { API_BASE_URL, WS_URL } from "@/types";
 
 interface ControlButtonsProps {
   isActive: boolean;
@@ -57,6 +58,12 @@ export function ControlButtons({ isActive, onStateChange }: ControlButtonsProps)
           <p>Error: {error.message}</p>
         </div>
       )}
+      <div>
+        <p>Host: {window.location.hostname}</p>
+        <p>API: {API_BASE_URL}</p>
+        <p>WS: {WS_URL}</p>
+      </div>
     </div>
+
   );
 }

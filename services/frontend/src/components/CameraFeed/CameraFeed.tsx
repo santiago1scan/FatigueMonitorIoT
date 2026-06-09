@@ -9,14 +9,17 @@ export function CameraFeed() {
     let timeoutId: NodeJS.Timeout;
     let isActive = true;
 
+    const host = window.location.hostname;
+    const cameraUrl = `http://${host}:8090/frame.jpg`;
+
     const updateFrame = () => {
       if (!isActive) return;
-      
+
       if (imgRef.current) {
-        imgRef.current.src = `http://localhost:8090/frame.jpg?ts=${Date.now()}`;
+        imgRef.current.src = `${cameraUrl}?ts=${Date.now()}`;
       }
-      
-      timeoutId = setTimeout(updateFrame, 150); 
+
+      timeoutId = setTimeout(updateFrame, 150);
     };
 
     updateFrame();
@@ -30,19 +33,27 @@ export function CameraFeed() {
   return (
     <div className={styles.container}>
       <h3 className={styles.title}>Camera Feed (Vision Debug)</h3>
+
       <div style={{ position: "relative" }}>
         {hasError && (
-          <div className={styles.error} style={{ position: "absolute", top: 0, width: "100%", background: "rgba(0,0,0,0.7)" }}>
+          <div
+            className={styles.error}
+            style={{
+              position: "absolute",
+              top: 0,
+              width: "100%",
+              background: "rgba(0,0,0,0.7)",
+            }}
+          >
             Buscando señal de video...
           </div>
         )}
+
         <img
           ref={imgRef}
           alt="Pose Detections"
           className={styles.image}
-          // Si carga exitosamente, quitamos el error
           onLoad={() => setHasError(false)}
-          // Si da error, mostramos advertencia pero no desmontamos la imagen para poder reintentar
           onError={() => setHasError(true)}
         />
       </div>
