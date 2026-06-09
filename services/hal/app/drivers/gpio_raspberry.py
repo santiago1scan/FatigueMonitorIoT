@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import mmap
+import os
 import struct
 
 from app.config.settings import Settings
@@ -20,9 +21,9 @@ class RaspberryGPIO(BaseGPIO):
         self._map: mmap.mmap | None = None
 
     async def setup_output(self, pin: int) -> None:
-        fd = open("/dev/gpiomem", "rb+")
-        self._map = mmap.mmap(fd.fileno(), 0x1000, offset=GPIO_BASE)
-        fd.close()
+        fd = os.open("/dev/gpiomem", os.O_RDWR | os.O_SYNC)
+        self._map = mmap.mmap(fd, 0x1000, offset=GPIO_BASE)
+        os.close(fd)
 
         reg_idx = pin // 10
         bit_shift = (pin % 10) * 3
