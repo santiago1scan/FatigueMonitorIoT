@@ -21,7 +21,6 @@ class Settings(BaseSettings):
     mqtt_client_id: str = "hal-service"
     mqtt_topics: List[str] = Field(
         default_factory=lambda: [
-            "gym/assist/activate",
             "gym/assist/disable",
             "gym/decision/failure",
         ]
@@ -31,12 +30,6 @@ class Settings(BaseSettings):
     mqtt_error_topic: str = "gym/hal/errors"
     mqtt_status_interval_s: int = 5
 
-    servo_provider: str = "mock"
-    servo_pin: int = 18
-    servo_min_angle: float = 0.0
-    servo_max_angle: float = 180.0
-    servo_neutral_angle: float = 90.0
-
     camera_provider: str = "mock"
     camera_device_index: int = 0
     camera_frame_width: int = 640
@@ -44,10 +37,6 @@ class Settings(BaseSettings):
 
     gpio_provider: str = "mock"
     status_led_pin: int = 17
-
-    pwm_provider: str = "mock"
-    pwm_pin: int = 12
-    pwm_frequency: int = 50
 
     @field_validator("mqtt_topics", mode="before")
     @classmethod

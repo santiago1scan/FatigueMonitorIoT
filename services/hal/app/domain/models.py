@@ -5,12 +5,6 @@ from datetime import datetime
 
 
 @dataclass
-class ServoState:
-    connected: bool = False
-    angle: float | None = None
-
-
-@dataclass
 class CameraState:
     opened: bool = False
 
@@ -22,16 +16,8 @@ class GpioState:
 
 
 @dataclass
-class PwmState:
-    active: bool = False
-    duty_cycle: float | None = None
-
-
-@dataclass
 class HalStatus:
     service: str
     timestamp: datetime
-    servo: ServoState
     camera: CameraState
     gpio: GpioState
-    pwm: PwmState
