@@ -23,6 +23,7 @@ class Settings(BaseSettings):
         default_factory=lambda: [
             "gym/assist/activate",
             "gym/assist/disable",
+            "gym/decision/failure",
         ]
     )
     mqtt_status_topic: str = "gym/system/status"

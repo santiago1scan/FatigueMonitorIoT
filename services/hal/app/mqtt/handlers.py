@@ -4,7 +4,11 @@ import json
 import logging
 from datetime import datetime
 
-from app.schemas.mqtt import AssistActivatePayload, AssistDisablePayload
+from app.schemas.mqtt import (
+    AssistActivatePayload,
+    AssistDisablePayload,
+    FailureEventPayload,
+)
 from app.services.app_context import AppContext
 
 
@@ -19,6 +23,9 @@ class MqttHandlers:
             return
         if topic == "gym/assist/disable":
             await self._handle_disable(payload)
+            return
+        if topic == "gym/decision/failure":
+            await self._handle_failure(payload)
             return
 
         self._logger.warning("mqtt_unhandled topic=%s", topic)
@@ -43,14 +50,23 @@ class MqttHandlers:
     async def _handle_activate(self, payload: bytes) -> None:
         data = AssistActivatePayload.model_validate(json.loads(payload.decode("utf-8")))
         await self._context.servo_service.activate(data.force)
-        await self._context.gpio_service.set_status_led(True)
         await self._publish_status("assist_activated")
 
     async def _handle_disable(self, payload: bytes) -> None:
         AssistDisablePayload.model_validate(json.loads(payload.decode("utf-8")))
         await self._context.servo_service.disable()
+        await self._context.gpio_service.stop_blink()
         await self._context.gpio_service.set_status_led(False)
         await self._publish_status("assist_disabled")
+
+    async def _handle_failure(self, payload: bytes) -> None:
+        data = FailureEventPayload.model_validate(json.loads(payload.decode("utf-8")))
+        self._logger.info("failure_event event=%s confidence=%s", data.event, data.confidence)
+        if data.event == "NEAR_FAILURE":
+            await self._context.gpio_service.start_blink(0.5)
+        elif data.event == "FAILURE_DETECTED":
+            await self._context.gpio_service.stop_blink()
+            await self._context.gpio_service.set_status_led(True)
 
     async def _publish_status(self, event: str) -> None:
         await self._context.mqtt_client.publish(
