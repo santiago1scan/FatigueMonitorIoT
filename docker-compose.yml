@@ -70,6 +70,7 @@ services:
       HAL_GPIO_PROVIDER: "raspberry"
     devices:
       - /dev/gpiomem0:/dev/gpiomem
+      - /dev/gpiochip0:/dev/gpiochip0
       - "/dev/video2:/dev/video0"
     ports:
       - "8080:8080"
