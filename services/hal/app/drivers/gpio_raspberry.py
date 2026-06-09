@@ -1,31 +1,50 @@
 from __future__ import annotations
 
 import logging
+import mmap
+import struct
 
 from app.config.settings import Settings
 from app.domain.base import BaseGPIO
 
+GPIO_BASE = 0x200000
+
+GPFSEL = [0x00, 0x04, 0x08, 0x0c, 0x10, 0x14]
+GPSET = [0x1c, 0x20]
+GPCLR = [0x28, 0x2c]
+
 
 class RaspberryGPIO(BaseGPIO):
     def __init__(self, settings: Settings) -> None:
-        self._settings = settings
         self._logger = logging.getLogger(__name__)
-        self._device = None
+        self._map: mmap.mmap | None = None
 
     async def setup_output(self, pin: int) -> None:
-        try:
-            from gpiozero import DigitalOutputDevice
-        except ImportError as exc:
-            raise RuntimeError("gpiozero is required for RaspberryGPIO") from exc
+        fd = open("/dev/gpiomem", "rb+")
+        self._map = mmap.mmap(fd.fileno(), 0x1000, offset=GPIO_BASE)
+        fd.close()
 
-        self._device = DigitalOutputDevice(pin)
+        reg_idx = pin // 10
+        bit_shift = (pin % 10) * 3
+
+        raw = self._read32(GPFSEL[reg_idx])
+        raw &= ~(7 << bit_shift)
+        raw |= 1 << bit_shift
+        self._write32(GPFSEL[reg_idx], raw)
+
         self._logger.info("raspberry_gpio_setup pin=%s", pin)
 
     async def write(self, pin: int, value: bool) -> None:
-        if not self._device:
+        if not self._map:
             raise RuntimeError("gpio_not_configured")
         if value:
-            self._device.on()
+            self._write32(GPSET[pin // 32], 1 << (pin % 32))
         else:
-            self._device.off()
+            self._write32(GPCLR[pin // 32], 1 << (pin % 32))
         self._logger.info("raspberry_gpio_write pin=%s value=%s", pin, value)
+
+    def _read32(self, offset: int) -> int:
+        return struct.unpack("<I", self._map[offset : offset + 4])[0]
+
+    def _write32(self, offset: int, value: int) -> None:
+        self._map[offset : offset + 4] = struct.pack("<I", value)
