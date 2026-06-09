@@ -46,6 +46,9 @@ class MqttHandlers:
 
     async def _handle_failure(self, payload: bytes) -> None:
         data = FailureEventPayload.model_validate(json.loads(payload.decode("utf-8")))
+        if data.confidence == 0:
+            self._logger.debug("failure_event_ignored confidence=0 event=%s", data.event)
+            return
         self._logger.info("failure_event event=%s confidence=%s", data.event, data.confidence)
         if data.event == "NEAR_FAILURE":
             await self._context.gpio_service.start_blink(0.5)
