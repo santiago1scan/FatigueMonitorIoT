@@ -60,16 +60,16 @@ services:
   hal:
     build: ./services/hal
     container_name: hal-service
+    privileged: true
     environment:
       HAL_ENV: "dev"
       HAL_MQTT_HOST: "mqtt"
       HAL_MQTT_PORT: "1883"
-      HAL_SERVO_PROVIDER: "mock"
       HAL_CAMERA_PROVIDER: "opencv"
       HAL_CAMERA_DEVICE_INDEX: "0"
-      HAL_GPIO_PROVIDER: "mock"
-      HAL_PWM_PROVIDER: "mock"
+      HAL_GPIO_PROVIDER: "raspberry"
     devices:
+      - /dev/gpiomem0:/dev/gpiomem
       - "/dev/video2:/dev/video0"
     ports:
       - "8080:8080"
