@@ -8,8 +8,6 @@ import struct
 from app.config.settings import Settings
 from app.domain.base import BaseGPIO
 
-GPIO_BASE = 0x200000
-
 GPFSEL = [0x00, 0x04, 0x08, 0x0c, 0x10, 0x14]
 GPSET = [0x1c, 0x20]
 GPCLR = [0x28, 0x2c]
@@ -22,7 +20,7 @@ class RaspberryGPIO(BaseGPIO):
 
     async def setup_output(self, pin: int) -> None:
         fd = os.open("/dev/gpiomem", os.O_RDWR | os.O_SYNC)
-        self._map = mmap.mmap(fd, 0x1000, offset=GPIO_BASE)
+        self._map = mmap.mmap(fd, 0x1000, offset=0)
         os.close(fd)
 
         reg_idx = pin // 10
